@@ -8,7 +8,7 @@ import 'state/app_state.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final state = NotesState(service: NotesService());
+  final state = NotesState(service: const NotesService());
   unawaited(state.reload());
   runApp(YawalaApp(state: state));
 }
