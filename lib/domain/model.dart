@@ -11,7 +11,7 @@ class Note {
 
   /// Sample notes used by the boilerplate service until the native storage
   /// layer is wired up through `platform_bindings.dart`.
-  static const List<Note> seedLibrary = [
+  static final List<Note> seedLibrary = [
     Note(
       id: 'note-1',
       title: 'Welcome to Yawala Notes',
