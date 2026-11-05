@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Yawala Notes
+Comment=Cross-platform note-taking app, part of the Yawala-Siwala ecosystem. One Flutter code base targeting Android, iOS, Linux, macOS and Windows.
+Exec=yawala-notes
+TryExec=yawala-notes
+Icon=com.yawalasiwala.notes
+Terminal=false
+StartupWMClass=Yawala Notes
+Categories=Utility;TextEditor;Office;
