@@ -1,10 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../state/app_state.dart';
+import 'package:yawala_core/yawala_core.dart';
+
+import '../../state/notes_state.dart';
 import '../widgets/notes_card.dart';
 import '../widgets/notes_toolbar.dart';
+import 'note_editor_screen.dart';
 
-/// Main screen of Yawala Notes: toolbar, notes list and primary action.
+/// Note list with search filtering and one-tap access to the editor.
 class NotesHomeScreen extends StatelessWidget {
   const NotesHomeScreen({super.key, required this.state});
 
@@ -14,37 +17,62 @@ class NotesHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Yawala Notes')),
-      body: Column(
-        children: [
-          NotesToolbar(state: state),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: state,
-              builder: (context, _) {
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final items = state.items.toList(growable: false);
-                if (items.isEmpty) {
-                  return const Center(
-                    child: Text('Nothing found - try a different search.'),
-                  );
-                }
-                return ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) =>
-                      NoteCard(item: items[index]),
-                );
-              },
-            ),
-          ),
-        ],
+      body: ListenableBuilder(
+        listenable: state,
+        builder: (context, _) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final notes = state.notes.toList(growable: false);
+          if (notes.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('No notes match your search.'),
+                  const SizedBox(height: YawalaSpacing.md),
+                  FilledButton(
+                    onPressed: () => _createAndOpen(context),
+                    child: const Text('Create a note'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return Column(
+            children: [
+              NotesToolbar(state: state),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: notes.length,
+                  itemBuilder: (context, index) {
+                    return NoteCard(
+                      item: notes[index],
+                      onTap: () => _openEditor(context, notes[index].id),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: 'New note (editor TODO)',
-        onPressed: () {}, // TODO(mvp): open the note editor route.
+        tooltip: 'New note',
+        onPressed: () => _createAndOpen(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  void _createAndOpen(BuildContext context) {
+    final note = state.createNote();
+    _openEditor(context, note.id);
+  }
+
+  void _openEditor(BuildContext context, String noteId) {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => NoteEditorScreen(state: state, noteId: noteId),
+    ));
   }
 }

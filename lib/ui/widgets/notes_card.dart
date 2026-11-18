@@ -4,9 +4,10 @@ import '../../domain/model.dart';
 
 /// List row for a single Note.
 class NoteCard extends StatelessWidget {
-  const NoteCard({super.key, required this.item});
+  const NoteCard({super.key, required this.item, this.onTap});
 
   final Note item;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +18,7 @@ class NoteCard extends StatelessWidget {
         title: Text(item.displayName),
         subtitle: Text(item.subtitle),
         trailing: Text(item.meta),
+        onTap: onTap,
       ),
     );
   }

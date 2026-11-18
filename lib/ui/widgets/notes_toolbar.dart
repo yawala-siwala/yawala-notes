@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../state/app_state.dart';
+import '../../state/notes_state.dart';
 
 /// Search / filter bar shown above the notes list.
 class NotesToolbar extends StatelessWidget {
@@ -29,7 +29,7 @@ class NotesToolbar extends StatelessWidget {
             listenable: state,
             builder: (context, _) => Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Chip(label: Text('${state.items.length} notes')),
+              child: Chip(label: Text('${state.notes.length} notes')),
             ),
           ),
         ],
