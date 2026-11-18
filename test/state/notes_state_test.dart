@@ -23,7 +23,10 @@ class FakeNotesBinding implements NotesNativeBinding {
 
   @override
   Future<MarkdownPreview> renderMarkdown(String source) async {
-    return MarkdownPreview(html: '<p>native</p>', usedNativeRenderer: true);
+    return const MarkdownPreview(
+      html: '<p>native</p>',
+      usedNativeRenderer: true,
+    );
   }
 }
 

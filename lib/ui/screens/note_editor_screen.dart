@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:yawala_core/yawala_core.dart';
 
+import '../../native/platform_bindings.dart';
 import '../../state/notes_state.dart';
 
 /// Markdown editor with a split (desktop) or tabbed (phone) live preview
