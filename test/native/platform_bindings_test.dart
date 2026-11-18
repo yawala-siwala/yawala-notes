@@ -57,6 +57,24 @@ void main() {
     });
   });
 
+  group('native errors degrade to fallbacks', () {
+    test('export, import and rendering survive PlatformException', () async {
+      messenger.setMockMethodCallHandler(notesChannel, (call) async {
+        throw PlatformException(code: 'E_SAF', message: 'provider busy');
+      });
+
+      expect(
+        await binding.exportNote(fileName: 'a.md', content: 'x'),
+        isNull,
+      );
+      expect(await binding.importNoteFile(), isNull);
+
+      final preview = await binding.renderMarkdown('<b>bold</b>');
+      expect(preview.usedNativeRenderer, isFalse);
+      expect(preview.html, '<p>&lt;b&gt;bold&lt;/b&gt;</p>');
+    });
+  });
+
   group('channel invocation safety (no native handler registered)', () {
     test('export/import degrade to null (treated as cancelled)', () async {
       expect(
