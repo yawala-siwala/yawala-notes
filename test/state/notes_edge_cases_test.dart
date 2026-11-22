@@ -73,12 +73,15 @@ void main() {
       final state = buildState();
       await state.load();
       final before = state.allNotes.length;
+      final selected = state.allNotes.first;
+      state.select(selected.id);
 
       state.updateContent('does-not-exist', title: 'ghost');
 
       expect(state.allNotes, hasLength(before));
       expect(state.noteById('does-not-exist'), isNull);
-      expect(state.selectedNote, isNotNull); // selection untouched
+      // The selection (and its note) is untouched by the ghost update.
+      expect(state.selectedNote?.id, selected.id);
     });
 
     test('deleteNote on an unknown id keeps every note', () async {
@@ -96,8 +99,9 @@ void main() {
       final state = buildState();
       await state.load();
       final other = state.allNotes.last;
+      state.select(state.allNotes.first.id);
 
-      state.deleteNote(state.selectedNote!.id);
+      state.deleteNote(state.allNotes.first.id);
 
       expect(state.selectedNote, isNull);
       state.select(other.id);
@@ -142,7 +146,8 @@ void main() {
         content: 'pancakes',
       );
       await state.importNote();
-      expect(state.selectedNote?.title, 'recipes');
+      // Only a trailing .md is stripped - other extensions stay intact.
+      expect(state.selectedNote?.title, 'recipes.txt');
 
       native.nextImport = const ImportedFile(
         fileName: '.md',
