@@ -32,6 +32,11 @@ class NotesState extends ChangeNotifier {
   String? _selectedId;
   bool _isLoading = false;
 
+  /// Disambiguates ids created within the same clock tick - Windows clock
+  /// granularity means two rapid [createNote]/[importNote] calls can share
+  /// a `microsecondsSinceEpoch`, and duplicate ids would corrupt lookups.
+  int _idCounter = 0;
+
   /// Every stored note, in insertion order.
   List<Note> get allNotes => List.unmodifiable(_notes);
 
@@ -84,7 +89,7 @@ class NotesState extends ChangeNotifier {
   /// Creates an empty note, selects it and returns it.
   Note createNote({String title = 'Untitled note'}) {
     final note = Note(
-      id: 'note-${DateTime.now().microsecondsSinceEpoch}',
+      id: _nextId(),
       title: title,
       body: '',
       updatedAt: DateTime.now(),
@@ -153,7 +158,7 @@ class NotesState extends ChangeNotifier {
         ? file.fileName.substring(0, file.fileName.length - 3)
         : file.fileName;
     final note = Note(
-      id: 'note-${DateTime.now().microsecondsSinceEpoch}',
+      id: _nextId(),
       title: title.isEmpty ? 'Imported note' : title,
       body: file.content,
       updatedAt: DateTime.now(),
@@ -164,6 +169,8 @@ class NotesState extends ChangeNotifier {
     notifyListeners();
     return file;
   }
+
+  String _nextId() => 'note-${DateTime.now().microsecondsSinceEpoch}-${_idCounter++}';
 
   /// Renders [body] through the platform markdown bridge (falls back to an
   /// escaped Dart paragraph on unsupported platforms).

@@ -27,6 +27,15 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   late final TextEditingController _title;
   late final TextEditingController _body;
 
+  /// Debounced preview state: every keystroke used to fire a fresh native
+  /// markdown render through the bridge; now the render runs once the user
+  /// pauses for [previewDebounceDelay], and the last preview stays on
+  /// screen in the meantime.
+  static const Duration previewDebounceDelay = Duration(milliseconds: 250);
+  Timer? _previewDebounce;
+  String _previewBody = '';
+  Future<MarkdownPreview>? _previewFuture;
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +56,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   @override
   void dispose() {
+    _previewDebounce?.cancel();
     _title.dispose();
     _body.dispose();
     super.dispose();
@@ -144,21 +154,43 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         final note = widget.state.noteById(widget.noteId);
         final body = note?.body ?? '';
         if (body.trim().isEmpty) {
+          _previewDebounce?.cancel();
+          _previewBody = '';
+          _previewFuture = null;
           return const Center(
             child: Text('Nothing to preview yet - start typing.'),
           );
         }
+        if (body != _previewBody && _previewDebounce == null) {
+          // Body changed since the last render: debounce the bridge call.
+          _previewDebounce = Timer(previewDebounceDelay, () {
+            _previewDebounce = null;
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _previewBody = widget.state.noteById(widget.noteId)?.body ?? '';
+              _previewFuture = _previewBody.trim().isEmpty
+                  ? null
+                  : widget.state.renderPreview(_previewBody);
+            });
+          });
+        }
+        final future = _previewFuture;
+        if (future == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
         return SingleChildScrollView(
           padding: const EdgeInsets.all(YawalaSpacing.lg),
           child: FutureBuilder<MarkdownPreview>(
-            key: ValueKey(body),
-            future: widget.state.renderPreview(body),
+            key: ValueKey(_previewBody),
+            future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const Center(child: CircularProgressIndicator());
               }
               final preview =
-                  snapshot.data ?? MarkdownPreview.fallback(body);
+                  snapshot.data ?? MarkdownPreview.fallback(_previewBody);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
